@@ -1,0 +1,14 @@
+.defaultBackground{
+	position:relative;
+	left:100px;
+}
+
+.volunteer{
+	background-image:url('resources/css/Progress.jpg');
+}
+
+div.projectTitle{
+	position:relative;
+	bottom:-8px;
+}
+

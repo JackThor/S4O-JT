@@ -1,0 +1,59 @@
+$base-color: #848484;
+$base-gradient: 'glossy';
+$list-bg-color:#21610B;
+
+
+
+
+
+@import 'sencha-touch/default/all';
+
+
+// You may remove any of the following modules that you
+// do not use in order to create a smaller css file.
+@include sencha-panel;
+@include sencha-buttons;
+@include sencha-sheet;
+@include sencha-picker;
+@include sencha-tabs;
+@include sencha-toolbar;
+@include sencha-toolbar-forms;
+@include sencha-indexbar;
+@include sencha-list;
+@include sencha-layout;
+@include sencha-carousel;
+@include sencha-form;
+@include sencha-msgbox;
+@include sencha-loading-spinner;
+
+// Your custom code goes here...
+
+@include pictos-iconmask('settings8');
+@include pictos-iconmask('lock_closed');
+
+
+
+@include sencha-button-ui('darkGray',#303030 ,'bevel');
+@include sencha-button-ui('lightBlue',#0d242c ,'bevel');
+@include sencha-toolbar-ui('greenBar',#21610B,'bevel');
+@include sencha-toolbar-ui('white',#FFFFFF,'bevel');
+
+.x-list-item .x-list-disclosure {
+overflow: hidden;
+
+-webkit-mask-size: 1.2em;
+-webkit-mask: 0 0 url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAUCAYAAACEYr13AAAAAXNSR0IArs4c6QAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wGBwQ7Dme80Q4AAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAAKBJREFUOMvtU7ENAyEQM0i0DJMMxggnNoCKhpWyBxVINBQUlyrRJwKeKF0Ul9bZ8vl0wO8ixshExGdzYkSGEDilBKUUeu+w1oqZgRyRrTUAQO8dSimskkydnXNcSgGAZRKx2s97zznnpYlcGRhjnsOzdeTGQa5Hk60SHyAiaK1vH5/xIOZa6wv/3oH4RjxcgYguu+JVAt4R46TArV/4A7gDIZZWTRQC+PUAAAAASUVORK5CYII=') no-repeat;
+background-color: #FFFFFF;
+background-image: -webkit-linear-gradient(#f8f8f8,#000000);
+background-image: linear-gradient(#f8f8f8,#000000);
+position: absolute;
+width: 1.2em;
+height: 1.2em;
+bottom: 30%;
+}
+
+x-list {
+	 background-color: #21610B !important;
+}
+
+

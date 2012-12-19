@@ -1,0 +1,30 @@
+<apex:page showHeader="false" docType="html-5.0" standardStylesheets="false" cache="false" >
+ 
+  <head>
+      <meta charset="UTF-8" />
+      <title>Support 4 Ogs</title>
+      <!-- include sencha libraries and css -->
+      
+      <apex:includeScript value="{!$Resource.senchaTouch_all}"/>
+      <link rel="stylesheet" href="{!URLFOR($Resource.senchaTouch_css)}" type="text/css"/>
+      <link rel="stylesheet" href="{!URLFOR($Resource.Resources, 'resources/css/app.css')}" type="text/css"/>
+      <link rel="stylesheet" href="{!URLFOR($Resource.Resources, 'resources/css/Ext.ux.TouchCalendarView.css')}" type="text/css"/>
+      <link rel="stylesheet" href="{!URLFOR($Resource.Resources, 'resources/css/myApp.css')}" type="text/css"/>
+     
+   
+      <!-- Our custom visualforce component containing our sencha application -->
+      
+      <c:sencha_css />
+      
+      <!--This is our main config file app.js -->
+      <c:pocketSencha />
+  </head>
+  <body>
+      <div id="appLoadingIndicator">
+          <div></div>
+          <div></div>
+          <div></div>
+      </div>
+  </body>
+  
+</apex:page>

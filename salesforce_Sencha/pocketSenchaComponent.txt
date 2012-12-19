@@ -1,0 +1,1017 @@
+<apex:component controller="pocketSenchaController" >
+
+    <script type="text/javascript">
+        //==============================================================================================
+        //APPLICATION
+        //The Application class is the entry point into your Sencha Touch application.
+        //==============================================================================================
+          Ext.application({
+        name: "GS",
+        views: ["projectListView","searchListView"],
+        models: ["projectModel","inspirationModel","authorModel","AccountModel","Events","donationModel","intentions","userModel"],
+        stores: ["projectStore","inspirationStore","authorStore","accountStore","eventStore","donationStore","singleEventStore","myProgressStore","singleProjectStore","intentionStore","userStore"],
+       
+    
+        launch : function(){
+        
+             // Destroy the #appLoadingIndicator element
+            Ext.fly("appLoadingIndicator").destroy();
+                
+            Ext.create("GS.view.projectListView");
+        }
+    });
+        
+   
+        //==============================================================================================  
+        //MODELS
+        //Models are the objects on your application.
+        //==============================================================================================  
+        //The Lead model will include whatever fields are necssary to manage.
+        /**
+        *@class GS model.AccountModel
+        *@extends Ext.data.Model
+        *
+        *
+        **/
+        Ext.define('GS.model.AccountModel',{
+            extend:'Ext.data.Model',
+            config:{
+                fields:[
+                {name:'s4o__Salesforce_User__c',type:'string'},
+                {name:'s4o__Annual_Income__c',type:'int'},
+                {name:'s4o__Annual_Donation_Percent__c',type:'int'},
+                {name:'recurly__Account_Code__c',type:'string'},
+                {name:'Id',type:'string'},
+                {name:'Goal',
+                    convert:function(value,record){
+                        var income = record.get('s4o__Annual_Income__c');
+                        var percent = record.get('s4o__Annual_Donation_Percent__c');
+                        var goal = income * (percent/100);
+                        
+                        return goal;
+                    }
+                }
+                
+                ]
+            }
+        });
+        /**
+        *@class GS model.authorModel
+        *@extends Ext.data.Model
+        *
+        *
+        **/
+        Ext.define('GS.model.authorModel',{
+        extend:'Ext.data.Model',
+    
+            config:{
+                fields:[
+                        {name:'Id',type:'string'}, 
+                        {name:'s4o__Image__c',type:'string'},
+                        {name:'SystemModstamp',type:'string'},
+                        {name:'OwnerId',type:'string'},
+                        {name:'Name',type:'string'}
+                
+                        ]
+            }
+        });
+        /**
+        *@class GS model.donationModel
+        *@extends Ext.data.Model
+        *
+        *
+        */
+        Ext.define('GS.model.donationModel',{
+            extend:'Ext.data.Model',
+            config:{
+                fields:[
+                    {name:'s4o__Amount__c',type:'int'},
+                    {name:'s4o__Donor__r.s4o__Annual_Income__c',type:'string'},
+                    {name:'s4o__Project__c',type:'string'},
+                    {name:'s4o__Project__r.s4o__Title__c',type:'string'},
+                    {name:'s4o__Project__r.s4o__Description__c',type:'string'},
+                    {name:'s4o__Project__r.s4o__Materials__c',type:'string'},
+                    {name:'s4o__Project__r.s4o__Cost__c',type:'string'},
+                    {name:'s4o__Memo__c',type:'string'},
+                    {name:'s4o__Donor__c',type:'string'},
+                    {name:'s4o__Donation_Date__c',type:'string'},
+                    {name:'s4o__Cause__c',type:'string'},
+                    {name:'cost',
+                    convert:function(value,record){
+                        var st = record.get('s4o__Project__r.s4o__Cost__c');
+                        
+                        if (st == null || undefined)
+                            st = '$' + '0';
+                        else
+                            st = '$' + st;
+                        
+                        return st;
+                    }
+                    },
+                {name:'materials',
+                    convert:function(value,record){
+                        var st = record.get('s4o__Project__r.s4o__Materials__c');
+                        
+                        if (st == null || undefined)
+                            st = 'There are no materials for this project';
+                        
+                        return st;
+                    }
+                },
+                {name:'description',
+                    convert:function(value,record){
+                        
+                        var st = record.get('s4o__Project__r.s4o__Description__c');
+                        
+                        if (st == null || undefined)
+                            st = 'There is no Description for this project';
+                        
+                        return st;
+                        
+                    }
+                },
+                {name:'title',
+                    convert:function(value,record){
+                        var st = record.get('s4o__Project__r.s4o__Title__c');
+                        
+                        if (st == null)
+                            st == 'Project has no Title';
+                        
+                        return st;
+                                
+                                
+                    }
+                },
+                {name:'memo',
+                    
+                    convert:function(value,record){
+                        var st = record.get('s4o__Memo__c');
+                        
+                        if (st == null){
+                            st = 'Donation to your Organization';
+                        }
+                        
+                        return st;
+                    }
+                },
+                {name:'firstLetter',
+                    convert:function(value,record){
+                        //return first letter of title
+                        var st = record.get('s4o__Project__r.s4o__Title__c');
+                        
+                        if (st != null && st.length > 24){
+                            var returnString =st.substring(0,24) + '...';
+                            return returnString;
+                        }
+                        else{
+                            return st;
+                        }
+                        
+                        
+                    }
+                }
+                ]
+            }
+        });
+        /**
+        *@class GS model.Events
+        *@extends Ext.data.Model
+        *
+        *
+        *
+        */
+        Ext.define('GS.model.Events',{
+        extend:'Ext.data.Model',
+        config:{
+            fields:[
+                {name:'s4o__Address1__c',type:'string'},
+                {name:'s4o__Address2__c',type:'string'},
+                {name:'s4o__State__c',type:'string'},
+                {name:'s4o__Country__c',type:'string'},
+                {name:'s4o__City__c',type:'string'},
+               {name:'s4o__Title__c',type:'string'},
+               {name:'s4o__Project__c',type:'string'},
+               {name:'s4o__Project__r.s4o__Title__c',type:'string'},
+               {name:'s4o__Event_End__c',type:'string'},
+               {name:'s4o__Event_Begin__c',type:'string'},
+               {name:'s4o__Description__c',type:'string'},
+               {name:'s4o__Coordinator__c',type:'string'},
+               {name:'s4o__Coordinator__r.Name',type:'string'},
+               {name:'projectTitle',
+                   convert:function(value,record){
+                       var st = record.get('s4o__Project__r.s4o__Title__c');
+                       
+                       if (st == null)
+                           st = 'None';
+                       
+                       return st;
+                   }
+               },
+               {name:'CoordinatorName',
+                   convert:function(value,record){
+                       var st = record.get('s4o__Coordinator__r.Name');
+                       
+                       if (st == null)
+                           st = 'None';
+                       
+                       return st;
+                   }
+                   
+                   },
+               {name:'Datetime',
+                    convert:function(value,record){
+                        var st = record.get('s4o__Event_Begin__c');
+                        //reducing to size of date string to appropiate size by splitting from the '.'
+                        var rec = st.split('.');
+                        
+                        return rec[0];
+                    
+                    }
+               },
+               {name:'location',
+                    convert:function(value, record){
+                    
+                        var add1 = record.get('s4o__Address1__c');
+                        var add2 = record.get('s4o__Address2__c');
+                        var country = record.get('s4o__Country__c');
+                        var city = record.get('s4o__City__c');
+                        var state = record.get('s4o__State__c');
+                        
+                        if(add1 == null){
+                            add1 = '';
+                        }
+                        
+                        if(add2 == null){
+                            add2 = '';                      
+                        }
+                        
+                        if(country == null){
+                            country = '';
+                        }
+                        
+                        if(city == null){
+                            city = '';
+                        }
+                        
+                        if(state == null){
+                            state = '';
+                        }
+                        
+                        return add1 + ' ' + add2+ ', ' + city + ' ' + state + ', ' + country;
+                    
+                    }
+               
+               }
+               
+               ]
+            }
+    
+        });
+        /**
+        *@class GS.model.inspirationModel
+        *@extends Ext.data.Model
+        *
+        *
+        *
+        */
+        Ext.define('GS.model.inspirationModel',{
+        extend:'Ext.data.Model',
+        config:{
+                idProperty:'id',
+                fields:[
+                        {name:'s4o__Message__c', type:'string'},
+                        {name:'s4o__Inspiration_Type__c', type:'string'},
+                        {name:'s4o__Author__c',type:'string'}
+                    ]
+            }
+        });
+         /**
+        *@class GS.model.inspirationModel
+        *@extends Ext.data.Model
+        *
+        *
+        */
+        Ext.define('GS.model.intentions', {
+        extend: 'Ext.data.Model',
+        config:{
+        fields: [ 
+                 {name: 's4o__Donation_Amount__c', type: 'double'}, //the amount being contributed
+                 {name: 's4o__Title__c', type: 'string'}, //this is the intention 
+                 {name: 's4o__Donor__c', type:'string'},// the Donor donating, not needed for intention 
+                 {name: 'FirstTotal', type: 'double'},
+                 {name: 'SecondTotal', type: 'double'},
+                 {name: 'ThirTotal', type: 'double'},
+                 {name: 'FourthTotal', type: 'double'},
+                 {name: 'maxTotalDonated', type: 'double'}
+                 ]
+            }
+    
+    
+        });
+        /**
+        *@class GS model.projectModel
+        *@extends Ext.data.Model
+        *
+        */
+
+        Ext.define('GS.model.projectModel',{
+        extend:'Ext.data.Model',
+        config:{
+            idProperty:'id',
+            fields:[ 
+                {name:'s4o__Title__c',type:'string'},
+                {name:'s4o__Start_Date__c',type:'string'},
+                {name:'s4o__Org__c',type:'string'},
+                {name:'s4o__Materials__c',type:'string'},
+                {name:'s4o__End_Date__c',type:'string'},
+                {name:'s4o__Description__c',type:'string'},
+                {name:'s4o__Cost__c',type:'string'},
+                {name:'s4o__Contact__c',type:'string'},
+                {name:'s4o__Cause__c',type:'string'},
+                {name:'description',
+                    convert:function(value,record){
+                        var st = record.get('s4o__Description__c');
+                    
+                        if (st == null || undefined)
+                            st = 'There is no description for this project';
+                    
+                        return st;
+                    }
+                },
+                {name:'firstLetter',
+                    convert:function(value,record){
+                        //return first letter of title
+                        var st = record.get('s4o__Title__c');
+                    
+                        if (st.length > 24){
+                            var returnString =st.substring(0,24) + '...';
+                            return returnString;
+                        }
+                        else{
+                            return st;
+                        }
+                    
+                    
+                    }
+                }]
+            }
+        });
+        /**
+        *@class GS model.AccountModel
+        *@extends Ext.data.Model
+        *
+        *
+        */
+        Ext.define('GS.model.userModel',{
+        extend:'Ext.data.Model',
+        config:{
+            fields:[
+                    {name:'user',type:'string'},
+                    {name:'password',type:'string'}
+                    ]
+            }
+        });
+        
+        
+        //==============================================================================================
+        //STORES
+        //Stored serve as the client-side cache of your data; they loading data into your app's views. 
+        //==============================================================================================
+        //The Lead Store, this version will simply load with mock JSON data.
+        /**
+        *@class GS store.AccountStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.accountStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.AccountModel'
+            }
+        });
+        /**
+        *@class GS store.AccountStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.authorStore',{
+        extend:'Ext.data.Store',
+        requires:'Ext.data.proxy.LocalStorage',
+        config:{
+            model:'GS.model.authorModel',
+            data:{!Authors}
+            }
+        });
+        /**
+        *@class GS store.AccountStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.donationStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.donationModel',
+            data:{!DonatedProjects}
+            }
+        });
+        /**
+        *@class GS.store.ProjectStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+
+        Ext.define('GS.store.eventStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.Events',
+            autoLoad:true,
+            autoSync:true
+        
+            }
+        });
+        /**
+        *@class GS.store.inspirationStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+
+        Ext.define('GS.store.inspirationStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.inspirationModel',
+            data:{!Inspirtions}
+        
+            }
+        });
+        
+        /**
+        *@class GS.store.intentionsStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.intentionStore', {
+        extend: 'Ext.data.Store',
+        //xtype: 'intentionStore',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.intentions',
+            }
+    
+        });
+         /**
+        *@class GS.store.myProgresStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        
+        Ext.define('GS.store.myProgressStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.donationModel'
+        }
+        });
+        
+         /**
+        *@class GS.store.orgsStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.orgsStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.orgsModel'
+            }
+        });
+       
+        /**
+        *@class GS.store.ProjectStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.projectStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.projectModel',
+            data:{!Projects},
+            groupField:'s4o__Cause__c',
+            groupDir:'ASC',
+            sorters:[{property:'s4o__Title__c',direction:'ASC'}]
+        
+            }
+        });
+        /**
+        *@class GS.store.ProjectStore
+        *@extends Ext.data.Store
+        *
+        *
+        */
+
+        Ext.define('GS.store.singleEventStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.Events',
+            autoLoad:true,
+            autoSync:true
+        
+            }
+        });
+        /**
+        *@class GS.store.ProjectStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.singleProjectStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.donationModel'
+                
+            }
+        });
+        /**
+        *@class GS store.userStore
+        *@extends Ext.data.Store
+        *
+        *
+        *
+        */
+        Ext.define('GS.store.userStore',{
+        extend:'Ext.data.Store',
+        requires:"Ext.data.proxy.LocalStorage",
+        config:{
+            model:'GS.model.userModel'
+            }
+        });
+        
+        
+        //==============================================================================================
+        //CONTROLLERS
+        //Controllers manage the communication of your application and the coordination between the
+        //views and the model; they listen for the events emitted by the views and react accordingly.
+        //==============================================================================================    
+      
+    
+        //==============================================================================================
+        //VIEWS
+        //Views display data to your users and gather input from them; 
+        //they also emit events about your user interaction.
+        //==============================================================================================
+       Ext.define('GS.view.projectListView',{
+		extend : 'Ext.Container',
+		xtype : 'projectListView',
+		initialize:function(){
+		
+		Ext.Viewport.setMasked({ xtype: 'loadmask', message: 'Loading...', indicator:true, centered:true});
+		
+		
+		
+		Ext.Viewport.setMasked(false);
+	},
+	
+	config : {
+		
+		fullscreen: true,
+		scrollable:true,
+		layout : 'vbox',
+		items:[
+		       {
+		    	   docked : 'top',
+		    	   xtype : 'toolbar',
+		    	   ui:'white',
+		    	   layout:{
+		    		   type:'hbox',
+		    		   pack:'end'
+		    	   },
+		    	   items:[
+		    	         {
+		    	        	 docked:'left',
+		    	        	 xtype:'img',
+		    	        	 src:"{!URLFOR($Resource.Resources, 'resources/icons/RedCross.png')}",
+		    	        	 style:'background-size:contain',
+		    	        	 height:45,
+		    	        	 width:'70%',
+		    	        	 listeners:{
+		    	        		 tap:function(){
+		    	        			 window.open('http://www.redcross.org');
+		    	        		 }
+		    	        	 }
+		    	        		 
+		    	         },{		    	        	 
+		    	        	  xtype:'img',
+		    	        	  src:"{!URLFOR($Resource.Resources, 'resources/icons/Gear-icon.png')}",
+		    	        	  style:'background-size: contain',
+		    	        	  margin:'5 10 0 0',
+		    	        	  width:35,
+		    	        	  height:35,
+		    	        	  listeners:{
+		    	        		  tap:function(){
+		    	        			  
+		    	        		  }
+		    	        	  }
+		    	          },{
+		    	        	  xtype:'img',
+		    	        	  src:"{!URLFOR($Resource.Resources, 'resources/icons/Lock-icon.png')}",
+		    	        	  style:'background-size: contain',
+		    	        	  margin:'5 0 0 0',
+		    	        	  width:35,
+		    	        	  height:35,
+		    	        	  listeners:{
+		    	        		  tap:function(){
+		    	        			 	    	        			  
+		    	        		  }
+		    	        	  }
+		    	          }
+		    	          ]
+		    	   
+		       },{
+		    	   xtype : 'carousel',
+		    	   id:'myCar',
+		    	   autoDestroy:true,
+		    	   height:90,
+		    	   listeners:{
+		    		   painted:function(){
+		    			  
+		    			   
+		    					
+		    					
+		    					var inspirationStore = Ext.getStore('inspirationStore');
+		    					
+		    					inspirationStore.load();
+		    					
+		    					
+		    					
+			    				
+			    				
+			    				
+			    				
+			    					
+			    					
+			    					var authorStore = Ext.getStore('authorStore');
+			    					
+			    					authorStore.load();
+			    					
+			    					
+				    				
+				    				if (authorStore.getCount() == inspirationStore.getCount()){
+				    					
+				    					//get carousel componenet
+			    			      		var car = Ext.getCmp('myCar');
+			    			      		
+			    			      		var items = car.getItems();
+			    			      		//destroy all items within this container before populating
+			    			      		if (car.getItems().length > 1){
+			    			      			for (var j = 0; j < car.getItems().length; j++){
+			    			      				items[j].destroy();
+			    			      			}
+			    			      		}
+			    			      		  			      				      		
+			    			      		
+			    			      		//iterate though the store and add inspiration message and author
+			    			      		for (var i = 0; i < inspirationStore.getCount(); i++){
+			    			      			var record1 = inspirationStore.getAt(i);
+			    			      			var record2 = authorStore.getAt(i);
+			    			      			var author = record2.getData(false).Name;
+			    			      			
+			    			      			
+			    			      			var message = record1.getData(false).s4o__Message__c;
+			    			      			if(message.length > 110){
+			    			      				message = message.substring(0,110) + '...';
+			    			      			}
+			    			      			
+			    			      			var item = Ext.create('Ext.Panel',{
+			    			      				html:'<p class = "inspirationMessage">'+ message + '</p></br>' + '<p class = "authorName">' + author + '</p>',
+			    			      				cls:'carouselPanel'
+			    			      			});
+			    			      			car.add(item);
+			    			      			
+			    			      			
+			    			      		}
+				    					
+				    				}			    				
+				    				
+			    					
+			    			
+		    			      	
+		    				
+		    				
+		    		   },
+		    		   tap:function(){
+		    			  
+		    		   }
+		    	   }
+		    	  		    		   
+		       },{
+		    	   
+		    	   xtype:'searchListView'
+	    	      
+	          },{
+		    	   xtype:'panel',
+		    	   html:'<div style="font-size:14px;margin-left:70px;font-weight: bold;">Year to date donation progress</div>',
+		    	   height:25,
+		    	   
+		    		   
+		       },{
+		    	   xtype:'panel',
+		    	   height:75,
+		    	   layout:{
+		    		   type:'hbox',
+		    		   pack:'center'
+		    	   },
+		    	   cls:'progressBarPanel',
+		    	   items:[
+		    	          {
+		    	        	  xtype:'img',
+		    	        	  src:"{!URLFOR($Resource.Resources, 'resources/icons/thermometer01.png')}",
+		    	        	  id:'thermometer',
+		    	        	  style:'background-size: contain',
+		    	        	  width:320,
+		    	        	  height:50
+		    	        	  
+		    	          }
+		    	          
+		    	          ]
+		    	 
+		       },{
+		    	   xtype:'panel',
+		    	   hidden:true,
+		    	   modal:true,
+		    	   hideOnMaskTap:true,
+		    	   width:320,
+		    	   height:150,
+		    	   id:'buttonPanel',
+		    	   items:[
+{
+	   xtype : 'panel',
+	   dock : 'bottom',
+	   layout : {
+		   type : 'hbox',
+		   align:'end'
+		   
+	   },
+	   width: 320,
+	   items: [
+	          {
+	        	   xtype : 'button',
+	        	   iconAlign:'top',
+	        	   iconMask: true,
+	        	   html:'<img style="height:25px" src="{!URLFOR($Resource.Resources, 'resources/icons/quote.png')}"/><div style="height:16px;font-family:calibri;font-size:11px">Inspire</div>',
+	        	   zIndex: 1,
+	        	   width:85,
+	        	   margin:'10 10 10 10',
+	        	   height:55,
+	        	   ui:'darkGray',
+	        	   id : 'inspire',
+	        	   listeners:{
+	        		   tap:function(){
+	        			   
+	        			   
+
+	        		   }
+	        	   }
+	           },{
+	        	   xtype : 'button',
+	        	   iconAlign:'top',
+	        	   zIndex: 1,
+	        	   iconMask: true,
+	        	   html:'<img style="height:25px" src="{!URLFOR($Resource.Resources, 'resources/icons/onebit_11.png')}"/><div style="height:16px;font-family:calibri;font-size:11px">Calendar</div>',
+	        	   width: 85,
+	        	   margin:'0 10 10 10',
+	        	   height:55,
+	        	   ui:'darkGray',
+	        	   id : 'calendar',
+	        	   listeners:{
+	        		  tap:function(){
+	        			  
+	        		  }
+	        	   }
+	           },{
+	        	   xtype : 'button',
+	        	   iconAlign:'top',
+	        	   html:'<img style="height:25px" src="{!URLFOR($Resource.Resources, 'resources/icons/onebit_10.png')}"/><div style="height:16px;font-family:calibri;font-size:11px">Chat</div>',
+	        	   zIndex: 1,
+	        	   iconMask: true,
+	        	   width: 85,
+	        	   margin:'0 10 10 10',
+	        	   height:55,
+	        	   ui:'darkGray',
+	        	   id : 'chat',
+	        	   listeners:{
+	        		   tap:function(){
+	        			   
+	        		   }
+	        	   }
+	           }
+	           
+	           ]
+},{
+	   xtype : 'panel',
+	   dock : 'bottom',
+	   layout : {
+		   type : 'hbox',
+		   align:'end'
+	   },
+	   width: 320,
+	   items: [
+	           {
+	        	   xtype : 'button',
+	        	   iconAlign:'top',
+	        	   html:'<img style="height:25px" src="{!URLFOR($Resource.Resources, 'resources/icons/onebit_16.png')}"/><div style="height:16px;font-family:calibri;font-size:11px">Fundraising</div>',
+	        	   zIndex: 1,
+	        	   iconMask: true,
+	        	   width: 85,
+	        	   margin:'0 10 10 10',
+	        	   height:55,
+	        	   ui:'darkGray',
+	        	   id : 'fundraise',
+	        	   listeners:{
+	        		   tap:function(){
+	        			   
+	        		   }
+	        	   }
+	           },{
+	        	   xtype : 'button',
+	        	   iconAlign:'top',
+	        	   html:'<img style="height:25px" src="{!URLFOR($Resource.Resources, 'resources/icons/onebit_27.png')}"/><div style="height:16px;font-family:calibri;font-size:11px">Volunteer</div>',
+	        	   zIndex: 1,
+	        	   iconMask: true,
+	        	   width: 85,
+	        	   margin:'0 10 10 10',
+	        	   height:55,
+	        	   ui:'darkGray',
+	        	   id : 'volunteer',
+	        	   listeners:{
+	        		   tap:function(){
+	        			   
+	        		   }
+	        	   }
+	           },{
+	        	   xtype : 'button',
+	        	   iconAlign:'top',
+	        	   html:'<img style="height:25px" src="{!URLFOR($Resource.Resources, 'resources/icons/moneyjar_by_Artdesigner.lv.png')}"/><div style="height:16px;font-family:calibri;font-size:11px">Progress</div>',
+	        	   zIndex: 1,
+	        	   iconMask: true,
+	        	   width: 85,
+	        	   margin:'0 10 10 10',
+	        	   height:55,
+	        	   ui:'darkGray',
+	        	   id : 'progress',
+	        	   listeners:{
+	        		   tap:function(){
+	        			   
+	        		   }
+	        	   }
+	           }
+	           ]
+}
+		    	          
+		    	          ]
+		       },{
+			    	 docked:'bottom',
+			    	 xtype:'toolbar',
+			    	 layout:{
+			    		 type:'hbox',
+			    		 pack:'center'
+			    	 },
+			    	 items:[
+			    	        {
+			    	        	xtype:'button',
+			    	        	text:'Menu',
+			    	        	ui:'round',
+			    	        	width:100,
+			    	        	id:'menuButton',
+			    	        	listeners:{
+			    	        		tap:function(){
+			    	        			if (!Ext.getCmp('buttonPanel').hidden){
+			    	        				Ext.getCmp('buttonPanel').showBy(Ext.getCmp('menuButton'));
+			    	        			}
+			    	        			
+			    	        			
+			    	        		}
+			    	        	}
+			    	        }
+			    	        ]
+			       }
+		       ]
+			}
+		});
+		Ext.define('GS.view.searchListView',{
+		extend:'Ext.Container',
+		xtype:'searchListView',
+		requires:[
+	          'Ext.data.Store',
+	          'Ext.List',
+	          'Ext.field.Search',
+	          'Ext.Toolbar'
+	          ],
+	config:{
+		layout:'vbox',
+		items:[
+		       {
+		    	docked:'top',
+		    	xtype:'toolbar',
+		    	cls:'transToolbar',	    		
+		    	height:45,
+		    	layout:{
+		    		type:'hbox',
+		    		pack:'end'
+		    	},
+		    	items:[
+		    	       
+		    	       {
+		    	    	   docked:'left',
+		    	    	   xtype:'label',
+		    	    	   html:'<div class="projectTitle" style="font-family:calibri;font-size:16px;text-align:center;margin-left:25px;margin-top:35px;padding-top:7px;">My Projects</div>'
+		    	       },{
+		    	    	   xtype:'searchfield',
+		    	    	   itemId:'projectSearch',
+		    	    	   id:'projectSearch',
+		    	    	   width:150,
+		    	       }	
+		    	       
+		    	      ]
+		    	
+		       },{
+		    	   	  xtype :'list',
+		    	   	  id : 'projectList',
+		    	   	  height: 180,
+		    	   	  ui:'round',
+		    	   	  scrollable: true,
+		    	      disableSelection:true,
+		    	      grouped:false,
+		    	      loadingText: 'Loading Projects',
+		    	      emptyText: ["<div style=\"text-align:center;\">Any Projects you have donated to",
+		    	      			" will appear here.Donate now by pressing the fundraising button in the menu.</div>"].join(""),
+		    	      onItemDisclosure: true,
+		    	      itemTpl: '<div style="font-family:sans-serif;font-size:14px;">{firstLetter}</div>',
+		    	      store : 'donationStore',
+		    	      listeners:{
+		    	    	  disclose:function(me, record, target, index, e, eOpts){
+		    	    		  var singleProject = Ext.getStore('singleProjectStore');
+		    	    			
+		    	    			var model = Ext.create('GS.model.donationModel',{
+		    	    				's4o__Amount__c':record.get('s4o__Amount__c'),
+		    	    				's4o__Donor__r.s4o__Annual_Income__c':record.get('s4o__Donor__r.s4o__Annual_Income__c'), 
+		    	    				's4o__Project__c':record.get('s4o__Project__c'), 
+		    	    				's4o__Project__r.s4o__Title__c':record.get('s4o__Project__r.s4o__Title__c'),
+		    	    				's4o__Memo__c':record.get('s4o__Memo__c'), 
+		    	    				's4o__Donor__c':record.get('s4o__Donor__c'), 
+		    	    				's4o__Donation_Date__c':record.get('s4o__Donation_Date__c'), 
+		    	    				's4o__Cause__c':record.get('s4o__Cause__c')
+		    	    			});
+		    	    			
+		    	    			singleProject.setData(model);
+		    	    			singleProject.load();
+		    	    			
+		    	    		  /**
+		    	    			Ext.Viewport.setActiveItem({
+		    	    				xtype : 'projectView'
+		    	    				
+		    	    			});
+		    	    			
+		    	    		**/
+		    	    	  }
+		    	      }
+		    	      
+		    	   
+		       }
+		       
+		       ]
+		
+			}
+	
+		});
+
+
+
+
+    </script>
+  
+</apex:component>

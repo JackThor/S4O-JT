@@ -1,0 +1,136 @@
+/***jsonP_controller
+*version 1.0a
+*Copyright 2012(c) by EnTransform.com. All Rights Reserved
+*Your are allowed to make modifications only for yourself, not for distribution
+*Without permission from EnTransform.
+*
+*The purpose of this controller is to return query data as json object to
+*our s4o sencha touch project
+*
+*Revision History
+*----------------
+*18Dec12-Initial creation of controller-Kevin Morfin
+**/
+public with sharing class pocketSenchaController {
+	
+	private string projects;
+	private string donatedProjects;
+	private string inspirations;
+	private string intentions;
+	private string authors;
+	private string events;
+	
+	//constructor
+	public pocketSenchaController(){
+		
+		 List<User> userList = [Select s4o__Password__c
+		 							   ,s4o__LoginID__c
+		 							   ,Id 
+		 							   From User where Id =: UserInfo.getUserId()];
+        //fetch all org projects        
+                 List<s4o__Project__c> projectList = [Select s4o__Title__c
+                 										     ,s4o__Start_Date__c
+                 										     ,s4o__Org__c
+                 										     ,s4o__Materials__c
+                 										     ,s4o__End_Date__c
+                 										     ,s4o__Description__c
+                 										     ,s4o__Cost__c
+                 										     ,s4o__Contact__c
+                 										     ,s4o__Cause__c 
+                 										     from s4o__Project__c 
+                 										     where s4o__Org__c IN (select s4o__Preferred_NonProfit__c 
+                 										     							  from account 
+                 										     							  where s4o__Salesforce_User__r.s4o__LoginID__c =:userList.get(0).s4o__LoginID__c) ORDER BY s4o__Title__c ASC];
+        //serialize projects into string json format     
+        projects = JSON.serialize(projectList);
+        system.debug('inspirations as JSON: ' + projects);
+        
+        //fetch all insprirations and authors
+         List<s4o__Inspiration__c > inspirationList = [Select s4o__Message__c
+         													  ,s4o__Inspiration_Type__c	
+         													  ,s4o__Author__c
+         													  ,s4o__Author__r.Name From 
+         													  s4o__Inspiration__c ORDER BY s4o__Author__r.Name ASC];
+                //serialize inspirations into string json format 
+                inspirations = JSON.serialize(inspirationList);
+                system.debug('inspirations as JSON: ' + inspirations);
+                
+                
+        List<s4o__Author__c> authorList = [Select Id
+        										  ,s4o__Image__c
+        										  ,SystemModstamp
+        										  ,OwnerId
+        										  ,Name 
+        										  From s4o__Author__c where Id IN (Select s4o__Author__c 
+        										  										  from s4o__Inspiration__c) ORDER BY Name];
+                
+                authors = JSON.serialize(authorList);
+                system.debug('author as JSON: ' + authors );
+                
+                
+       //Fetch donated Projects
+        List<s4o__Donation__c> Donationamtlist = [Select s4o__Amount__c
+        												 ,s4o__Donor__r.s4o__Annual_Income__c
+        												 ,s4o__Project__c
+        												 ,s4o__Project__r.s4o__Title__c
+        												 ,s4o__Project__r.s4o__Description__c
+        												 ,s4o__Project__r.s4o__Materials__c
+        												 ,s4o__Project__r.s4o__Cost__c
+        												 ,s4o__Memo__c, s4o__Donor__c
+        												 ,s4o__Donation_Date__c
+        												 ,s4o__Cause__c from 
+        												 s4o__Donation__c 
+        												 where s4o__Donor__c IN(select id 
+        												 							   from account 
+        												 							   where s4o__Salesforce_User__r.s4o__LoginID__c =:userList.get(0).s4o__LoginID__c) AND s4o__Project__c != null  ];
+                 
+                //data to return here
+                donatedProjects = JSON.serialize(donatedProjects);
+                system.debug('dobations project as JSON: ' + donatedProjects);
+		
+	}//end of controller
+	
+	/**
+	* return projects to projectStore.js
+	**/
+	public String getProjects(){
+		return projects;
+	}
+	
+	/**
+	* return projects to authorStore.js
+	**/
+	public String getAuthors(){
+		return authors; 
+	}
+	
+	/**
+	* return projects to inspirationStore.js
+	**/
+	public String getInspirtions(){
+		return inspirations; 
+	}
+	
+	/**
+	* return donatedprojects to donationStore.js
+	**/
+	public String getDonatedProjects(){
+		
+		return donatedProjects; 
+	}
+	
+	@isTest
+    public static void test_jsonP_controller(){
+    	pocketSenchaController positiveTest = new pocketSenchaController();
+    	//test projects
+    	system.assertNotEquals(positiveTest.getProjects(), null);
+    	//test inpirations
+    	system.assertNotEquals(positiveTest.getInspirtions(), null);
+    	//test authors
+    	system.assertNotEquals(positiveTest.getAuthors(), null);
+    	//test donated projects
+    	system.assertNotEquals(positiveTest.getDonatedProjects(), null);
+    	
+    }
+
+}
